@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        * { box-sizing: border-box; }
+        html, body {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            margin:0px;
+            background-color: transparent;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-direction: column;
+            width: 70px;
+            padding:30px 15px;
+            border-right: 1px solid #ffffff20;
+            align-items: center;
+        }
+        .toolbar button {
+            background-color: transparent;
+            border: 0px;
+            width: 35px;
+            height: 35px;
+            padding: 0px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .toolbar button:hover svg {
+            fill : #999;
+        }
+
+        .ide-container {
+            display: flex;
+            flex:1;
+            background-color: #141521;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .editor-container{
+            display: flex;
+            width: 100%;
+            flex:1;
+            position: relative;
+        }
+
+        .editor {
+            width: 100%;
+            margin:0px;
+            background-color: transparent;
+            position: absolute;
+            top:0px;
+            left:0px;
+            right:0px;
+            bottom:0px;
+            overflow-y: auto;
+            font-size: 20px;
+            font-weight: 500;
+            font-family: 'Source Code Pro';
+            padding: 20px 20px 20px 70px;
+            outline: none;
+        }
+        .ed1 {
+            color: transparent;
+            z-index: 999;
+            caret-color: #FFF;
+        }
+        .ed2 {
+            color: #78c1b1;
+            scrollbar-width: none;
+        }
+        .line-nums {
+            display: flex;
+            width: 70px;
+            flex-direction: column;
+            position: absolute;
+            top:0px;
+            left:0px;
+            padding: 20px 0px;
+            align-items: center;
+            bottom:0px;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+        .line-nums span {
+            display: flex;
+            font-size: 20px;
+            font-weight: 500;
+            font-family: 'Source Code Pro';
+            color:#474747;
+            padding:0px 10px;
+        }
+
+        .syntax-a {
+            color: #fb80b2;
+        }
+        .syntax-b {
+            color: #fff;
+            font-weight: 600;
+        }
+        .syntax-c {
+            color: #e59d71;
+        }
+        .syntax-d {
+            color: #56d05d;
+        }
+        .syntax-e {
+            color: #8b928b;
+        }
+        .syntax-f {
+            color: #6cc7fd;
+        }
+        .syntax-h {
+            color:#cb9dff;
+        }
+        .syntax-k {
+            color: #c18cf4;
+        }
+
+        .output-container {
+            color:#fff; 
+            font-size: 15px; 
+            max-width: 30%; 
+            width: 100%; 
+            overflow-y: auto;
+            background-color: #ffffff10;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .output-container > h3 {
+            margin:0px;
+            padding:15px 20px;
+            border-bottom: 2px solid #ffffff10;
+            overflow: hidden;
+        }
+        .output-container > div {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            min-height: 0;
+            height: 0px;
+            white-space: pre-wrap;
+            overflow: auto;
+            padding:20px;
+            
+        }
+
+        @font-face {
+            font-family: 'Source Code Pro';
+            src: url('/assets/fonts/SourceCodePro-VariableFont_wght.ttf');
+        }
+
+    </style>
+  </head>
+  <body>
+
+    <div class="ide-container">
+
+        <div class="toolbar">
+            <button id="open">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="100%" fill="#fff"><path d="M180-200q-25.31 0-42.65-17.35Q120-234.69 120-260v-435.38q0-25.31 19.65-44.97Q159.31-760 184.62-760h199.23l80 80h311.53q20.7 0 36.12 11.19 15.42 11.19 21.58 28.81H447.77l-80-80H184.62q-10.77 0-17.7 6.92-6.92 6.93-6.92 17.7v430.76q0 8.47 4.23 13.85 4.23 5.39 11.15 9.23L266-544.62h648.62l-90.7 302.24q-5.69 19.07-21.8 30.73Q786-200 766.15-200H180Zm37.08-40h564.46l78.92-264.62H296L217.08-240Zm0 0L296-504.62 217.08-240ZM160-640v-80 80Z"/></svg>
+            </button>
+            <button id="run">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="100%" fill="#fff"><path d="M400-336.92 623.08-480 400-623.08v286.16ZM480.13-120q-74.67 0-140.41-28.34-65.73-28.34-114.36-76.92-48.63-48.58-76.99-114.26Q120-405.19 120-479.87q0-74.67 28.34-140.41 28.34-65.73 76.92-114.36 48.58-48.63 114.26-76.99Q405.19-840 479.87-840q74.67 0 140.41 28.34 65.73 28.34 114.36 76.92 48.63 48.58 76.99 114.26Q840-554.81 840-480.13q0 74.67-28.34 140.41-28.34 65.73-76.92 114.36-48.58 48.63-114.26 76.99Q554.81-120 480.13-120Zm-.13-40q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
+            </button>
+        </div>
+        
+        <div class="editor-container">
+            <div class="line-nums" id="line_numbers"></div>
+            <pre class="editor ed1" contenteditable="plaintext-only" id="editor"></pre>
+            <pre class="editor ed2" contenteditable="true" id="editor_syntax"></pre>
+        </div>
+
+        <div class="output-container">
+            <h3>Error</h3>
+            <div id="standard_error"></div>
+            <h3>Output</h3>
+            <div id="standard_output"></div>
+        </div>
+    </div>
+
+    <script>
+
+        const invoke = window.__TAURI__.core.invoke;
+        const listen = window.__TAURI__.event.listen;
+
+        let currentFile = "";
+
+        async function init(){
+
+            document.querySelector("#editor").addEventListener("input", function(evt){
+                initEditor(this.innerText);
+            });
+
+            document.querySelector("#editor").addEventListener("keydown", function(evt){
+                if(evt.keyCode == 9){
+                    evt.preventDefault();
+
+                    let editor = document.getElementById("editor");
+                    let doc = editor.ownerDocument.defaultView;
+                    let sel = doc.getSelection();
+                    let range = sel.getRangeAt(0);
+
+                    let tabNode = document.createTextNode("    ");
+                    range.insertNode(tabNode);
+
+                    range.setStartAfter(tabNode);
+                    range.setEndAfter(tabNode); 
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+
+                    document.querySelector("#editor_syntax").innerHTML = praseCode(this.innerText);
+                }
+            });
+
+            document.querySelector("#editor").addEventListener("scroll", function(){
+                document.querySelector("#editor_syntax").scrollTop = this.scrollTop;
+                document.querySelector("#line_numbers").scrollTop = this.scrollTop;
+            });
+
+            document.querySelector("#run").addEventListener("click", async() => {
+
+                let code = document.querySelector("#editor").innerText;
+
+                if(currentFile){
+                    let response = await invoke("run", { code : code, file : currentFile });
+
+                    document.querySelector("#standard_error").innerHTML = response.standard_error;
+                    document.querySelector("#standard_output").innerHTML = response.standard_output;
+                }else{
+                    alert("No file selected");
+                }
+            });
+
+            document.querySelector("#open").addEventListener("click", async() => {
+                await invoke("open");
+            });
+
+            listen("file_opened", function(data){
+                let payload = JSON.parse(data.payload);
+                currentFile = payload.file;
+
+                document.querySelector("#editor").innerText = payload.contents;
+                initEditor(payload.contents);
+            });
+            
+        }
+
+
+        function initEditor(code) {
+            let lineCount = code.split("\n").length;
+
+            document.querySelector("#line_numbers").replaceChildren();
+
+            for(let i=0; i < lineCount; i++){
+                let num = document.createElement("span");
+                num.innerHTML = (i + 1);
+                document.querySelector("#line_numbers").appendChild(num);
+            }
+
+            document.querySelector("#editor_syntax").innerHTML = praseCode(code);
+        }
+
+        init();
+
+        function praseCode(str){
+
+            let len = str.length;
+            let token = '';
+            let tokensArray = [];
+            let ident = [' ', ';', ':', '(', ')', '=', '<', '>', '{', '}', '[', ']', ',', '.'];
+            let quote = false;
+            let comment = false;
+
+            for(let i=0; i < len; i++){
+                let ch = str[i];
+                let pc = str[i-1];
+
+                if (ch == '"'){
+                    quote = quote ? false : true;
+                }
+
+                if (ch == '\n'){
+                    comment = false;
+                }
+
+                if (ch == '/' && pc == '/'){
+                    comment = comment ? false : true;
+                }
+
+                if(ident.includes(ch) && quote == false && comment == false){
+                    tokensArray.push(token);
+                    tokensArray.push(ch);
+                    token = '';
+                    continue;
+                }
+
+                if((ch == '/' && pc == '/') && comment == false){
+                    tokensArray.push(token);
+                    tokensArray.push(ch);
+                    token = '';
+                    continue;
+                }
+
+                token += ch;
+            }
+
+            tokensArray.push(token);
+
+            return syntaxColor(tokensArray);
+        }
+
+        function syntaxColor(tokens){
+
+            let keywords = {
+                'use' : 'syntax-a',
+                'static' : 'syntax-a',
+                'const' : 'syntax-a',
+                'let' : 'syntax-a',
+                'fn' : 'syntax-a',
+                'match' : 'syntax-a',
+                'mut' : 'syntax-a',
+                'async' : 'syntax-a',
+                'continue' : 'syntax-k',
+                'return' : 'syntax-k',
+                'await' : 'syntax-k',
+                'yield' : 'syntax-k',
+                'type' : 'syntax-a',
+                'while' : 'syntax-k',
+                'for' : 'syntax-k',
+                'loop' : 'syntax-k',
+                'if' : 'syntax-k',
+                'else' : 'syntax-k',
+                'break' : 'syntax-k',
+                'true' : 'syntax-a',
+                'false' : 'syntax-a',
+                'struct' : 'syntax-a',
+                '{' : 'syntax-b',
+                '}' : 'syntax-b',
+                '[' : 'syntax-b',
+                ']' : 'syntax-b',
+                '(' : 'syntax-b',
+                ')' : 'syntax-b',
+                '=' : 'syntax-b',
+                '>' : 'syntax-b',
+                '<' : 'syntax-b',
+                '!' : 'syntax-b',
+                '.' : 'syntax-b',
+                ':' : 'syntax-b',
+                'str' : 'syntax-f',
+                'u8' : 'syntax-f',
+                'u32' : 'syntax-f',
+                'u62' : 'syntax-f',
+                'u128' : 'syntax-f',
+                'i8' : 'syntax-f',
+                'i32' : 'syntax-f',
+                'i64' : 'syntax-f',
+                'i128' : 'syntax-f',
+                'char' : 'syntax-f',
+                'string' : 'syntax-f',
+                'vec' : 'syntax-f',
+                'str' : 'syntax-f',
+                'bool' : 'syntax-f',
+            };
+
+            let str = '';
+            
+            for(let idx in tokens){
+                let token = tokens[idx];
+                let nextToken = tokens[parseInt(idx)+1];
+                
+                if(keywords[token.toLowerCase().trim()]){
+                    str += `<span class="${keywords[token.toLowerCase().trim()]}">${token.replaceAll("<", "&lt;")}</span>`;
+                }else{
+
+                    if(nextToken == '('){
+                        str += `<span class="syntax-h">${token.replaceAll("<", "&lt;")}</span>`;
+                    }else{
+
+                        if(token.substring(0,1) == '"'){
+                            str += `<span class="syntax-c">${token.replaceAll("<", "&lt;")}</span>`;
+                        }
+                        else if(token.trim().substring(0,1) == '&'){
+                            str += `<span class="syntax-f">${token}</span>`;
+                        }
+                        else if(token.trim().substring(0,2) == '//'){
+                            str += `<span class="syntax-e">${token}</span>`;
+                        }
+                        else{
+                            str += token;
+                        }
+                    }
+                }
+            }
+
+            return str;
+        }
+
+    </script>
+  </body>
+</html>
