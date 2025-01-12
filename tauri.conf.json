@@ -10,10 +10,10 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "decorations": false,
+        "decorations": true,
         "title": "Rust IDE",
         "fullscreen": false,
-        "transparent": true
+        "maximized": true
       }
     ],
     "security": {

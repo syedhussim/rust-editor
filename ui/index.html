@@ -11,7 +11,6 @@
             flex-direction: column;
             flex: 1;
             margin:0px;
-            background-color: transparent;
         }
 
         .toolbar {
@@ -39,7 +38,6 @@
             display: flex;
             flex:1;
             background-color: #141521;
-            border-radius: 10px;
             position: relative;
             overflow: hidden;
         }
@@ -61,7 +59,7 @@
             right:0px;
             bottom:0px;
             overflow-y: auto;
-            font-size: 20px;
+            font-size: 23px;
             font-weight: 500;
             font-family: 'Source Code Pro';
             padding: 20px 20px 20px 70px;
@@ -91,7 +89,7 @@
         }
         .line-nums span {
             display: flex;
-            font-size: 20px;
+            font-size: 23px;
             font-weight: 500;
             font-family: 'Source Code Pro';
             color:#474747;
@@ -140,6 +138,7 @@
             padding:15px 20px;
             border-bottom: 2px solid #ffffff10;
             overflow: hidden;
+            font-size: 20px;
         }
         .output-container > div {
             display: flex;
@@ -150,6 +149,7 @@
             white-space: pre-wrap;
             overflow: auto;
             padding:20px;
+            font-size: 20px;
             
         }
 
@@ -163,11 +163,7 @@
   <body>
 
     <div class="ide-container">
-
         <div class="toolbar">
-            <button id="open">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="100%" fill="#fff"><path d="M180-200q-25.31 0-42.65-17.35Q120-234.69 120-260v-435.38q0-25.31 19.65-44.97Q159.31-760 184.62-760h199.23l80 80h311.53q20.7 0 36.12 11.19 15.42 11.19 21.58 28.81H447.77l-80-80H184.62q-10.77 0-17.7 6.92-6.92 6.93-6.92 17.7v430.76q0 8.47 4.23 13.85 4.23 5.39 11.15 9.23L266-544.62h648.62l-90.7 302.24q-5.69 19.07-21.8 30.73Q786-200 766.15-200H180Zm37.08-40h564.46l78.92-264.62H296L217.08-240Zm0 0L296-504.62 217.08-240ZM160-640v-80 80Z"/></svg>
-            </button>
             <button id="run">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" width="100%" fill="#fff"><path d="M400-336.92 623.08-480 400-623.08v286.16ZM480.13-120q-74.67 0-140.41-28.34-65.73-28.34-114.36-76.92-48.63-48.58-76.99-114.26Q120-405.19 120-479.87q0-74.67 28.34-140.41 28.34-65.73 76.92-114.36 48.58-48.63 114.26-76.99Q405.19-840 479.87-840q74.67 0 140.41 28.34 65.73 28.34 114.36 76.92 48.63 48.58 76.99 114.26Q840-554.81 840-480.13q0 74.67-28.34 140.41-28.34 65.73-76.92 114.36-48.58 48.63-114.26 76.99Q554.81-120 480.13-120Zm-.13-40q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
             </button>
@@ -190,11 +186,14 @@
     <script>
 
         const invoke = window.__TAURI__.core.invoke;
-        const listen = window.__TAURI__.event.listen;
-
-        let currentFile = "";
 
         async function init(){
+
+            let code = await invoke("load"); console.log(code);
+
+            document.querySelector("#editor").innerText = code;
+
+            initEditor(code);
 
             document.querySelector("#editor").addEventListener("input", function(evt){
                 initEditor(this.innerText);
@@ -230,30 +229,12 @@
 
                 let code = document.querySelector("#editor").innerText;
 
-                if(currentFile){
-                    let response = await invoke("run", { code : code, file : currentFile });
+                let response = await invoke("run", { code : code });
 
-                    document.querySelector("#standard_error").innerHTML = response.standard_error;
-                    document.querySelector("#standard_output").innerHTML = response.standard_output;
-                }else{
-                    alert("No file selected");
-                }
+                document.querySelector("#standard_error").innerHTML = response.standard_error;
+                document.querySelector("#standard_output").innerHTML = response.standard_output;
             });
-
-            document.querySelector("#open").addEventListener("click", async() => {
-                await invoke("open");
-            });
-
-            listen("file_opened", function(data){
-                let payload = JSON.parse(data.payload);
-                currentFile = payload.file;
-
-                document.querySelector("#editor").innerText = payload.contents;
-                initEditor(payload.contents);
-            });
-            
         }
-
 
         function initEditor(code) {
             let lineCount = code.split("\n").length;
@@ -343,6 +324,8 @@
                 'true' : 'syntax-a',
                 'false' : 'syntax-a',
                 'struct' : 'syntax-a',
+                'impl' : 'syntax-a',
+                'trait' : 'syntax-a',
                 '{' : 'syntax-b',
                 '}' : 'syntax-b',
                 '[' : 'syntax-b',
@@ -369,6 +352,7 @@
                 'vec' : 'syntax-f',
                 'str' : 'syntax-f',
                 'bool' : 'syntax-f',
+                'self' : 'syntax-f'
             };
 
             let str = '';
